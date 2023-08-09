@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt");
 // @access Private
 const getAllUsers = asyncHandler( async (req, res) => {
     const users = await User.find().select('-password').lean() // exclude password
-    if (!users) return res.status(400).json({ message: 'No users found' })
+    if (!users?.length) return res.status(400).json({ message: 'No users found' })
 
     res.json(users)
 })
@@ -104,7 +104,7 @@ const deleteUser = asyncHandler( async (req, res) => {
     }
     
     // check user
-    const user = await User.findById({id}).exec()
+    const user = await User.findById(id).exec()
     if (!user) return res.status(400).json({ message: 'User not found' })
 
     const result = await user.deleteOne()
