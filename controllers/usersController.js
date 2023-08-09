@@ -45,7 +45,7 @@ const createNewUser = asyncHandler( async (req, res) => {
     } else {
         res.status(400).json({ message: 'Invalid user data received' })
     }
-
+    
 })
 
 // @desc Update a user
@@ -53,13 +53,64 @@ const createNewUser = asyncHandler( async (req, res) => {
 // @access Private
 const updateUser = asyncHandler( async (req, res) => {
     
+    const { id, username, roles, active, password } = req.body
+
+    // confirm data
+    if (!id || !username || !Array.isArray(roles) || !roles.length ||  typeof active !== 'boolean') {
+        return res.status(400).json({ message: 'All fields are required' })
+    }
+    
+    // check user
+    const user = await User.findById(id).exec()
+    if (!user) return res.status(400).json({ message: 'User not found' })
+
+    // check for duplicates
+    const duplicate = await User.findOne({ username }).lean().exec()
+
+    // allow updates to original user
+    if (duplicate && duplicate?._id.toString() !== id) {
+        return res.status(409).json({ message: 'Duplicate username' })
+    }
+
+    // set username, roles, & active
+    user.username = username
+    user.roles = roles
+    user.active = active
+
+    if (password) {
+        // hash password
+        user.password = await bcrypt.hash(password, 10)
+    }
+
+    // save user
+    const updatedUser = await user.save()
+
+    res.json({ message: `${updatedUser.username} updated` })
 })
 
 // @desc Delete a user
 // @route DELETE /users
 // @access Private
 const deleteUser = asyncHandler( async (req, res) => {
+    const { id } = req.body
+    if (!id) return res.status(400).json({ message: 'User ID required' })
     
+    // get notes data by user ID
+    const notes = await Note.findOne({ user: id }).lean().exec()
+
+    // check if user has assigned notes
+    if (notes?.length) {
+        return res.status(400).json({ message: 'User has assigned notes' })
+    }
+    
+    // check user
+    const user = await User.findById({id}).exec()
+    if (!user) return res.status(400).json({ message: 'User not found' })
+
+    const result = await user.deleteOne()
+    const reply = `Username ${result.username} with ID ${result._id} deleted`
+
+    res.json(reply)
 })
 
 module.exports = {

@@ -30,7 +30,7 @@ app.use('/', express.static(path.join(__dirname, 'public')))
 
 // routes
 app.use('/', require('./routes/root'))
-app.use('/users', require('./routes/userRoutes'))
+app.use('/api/users', require('./routes/userRoutes'))
 
 
 app.all('*', (req, res) => {
