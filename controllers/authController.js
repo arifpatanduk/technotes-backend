@@ -14,7 +14,7 @@ const login = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: 'All fields are required' })
     }
     
-    const foundUser = User.findOne({ username }).exec()
+    const foundUser = await User.findOne({ username }).exec()
     
     if (!foundUser || !foundUser.active) {
         return res.status(401).json({ message: 'Unauthorized' })
@@ -33,7 +33,7 @@ const login = asyncHandler(async (req, res) => {
             }
         },
         process.env.ACCESS_TOKEN_SECRET,
-        {expiresIn: '10s'}
+        {expiresIn: '1m'}
     )
     
     // create refresh token
@@ -87,7 +87,7 @@ const refresh = asyncHandler(async (req, res) => {
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,
-                {expiresIn: '10s'}
+                {expiresIn: '1m'}
             )
 
             res.json({ accesssToken })
