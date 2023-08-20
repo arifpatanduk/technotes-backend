@@ -25,7 +25,7 @@ const login = asyncHandler(async (req, res) => {
     if (!match) return res.status(401).json({ message: 'Unauthorized' })
 
     // create access token
-    const accesssToken = jwt.sign(
+    const accessToken = jwt.sign(
         {
             "UserInfo": {
                 "username": foundUser.username,
@@ -33,14 +33,14 @@ const login = asyncHandler(async (req, res) => {
             }
         },
         process.env.ACCESS_TOKEN_SECRET,
-        {expiresIn: '1m'}
+        {expiresIn: '15m'}
     )
     
     // create refresh token
     const refreshToken = jwt.sign(
         { "username": foundUser.username },
         process.env.REFRESH_TOKEN_SECRET,
-        {expiresIn: '1d'}
+        {expiresIn: '7d'}
     )
 
     // create secure cookie with refresh token
@@ -52,7 +52,7 @@ const login = asyncHandler(async (req, res) => {
     })
 
     // send response with accessToken containing username & roles
-    res.json({ accesssToken })
+    res.json({ accessToken })
 
 })
 
@@ -79,7 +79,7 @@ const refresh = asyncHandler(async (req, res) => {
             if (!foundUser) return res.status(401).json({ message: 'Unauthorized' })
 
             // create new access token
-            const accesssToken = jwt.sign(
+            const accessToken = jwt.sign(
                 {
                     "UserInfo": {
                         "username": foundUser.username,
@@ -87,10 +87,10 @@ const refresh = asyncHandler(async (req, res) => {
                     }
                 },
                 process.env.ACCESS_TOKEN_SECRET,
-                {expiresIn: '1m'}
+                {expiresIn: '15m'}
             )
 
-            res.json({ accesssToken })
+            res.json({ accessToken })
         })
     )
 })
@@ -102,7 +102,7 @@ const logout = asyncHandler(async (req, res) => {
     
     // get cookie from request
     const cookies = req.cookies
-    if (!cookies?.jwt) return res.sendStatus(402) // no content
+    if (!cookies?.jwt) return res.sendStatus(204) // no content
 
     // clear cookie
     res.clearCookie('jwt', {
